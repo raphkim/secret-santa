@@ -5,11 +5,20 @@ import smtplib
 from dotenv import load_dotenv
 from io import StringIO
 
+# Set to False to exit test mode
+test = True
+
+load_dotenv()
 contacts = {}
+note_template = """
+
+Note to Secret Santa:
+\"{}\"
+"""
 body_template = """\
 You will be sending a gift to {}.
 
-{}\
+{}{}\
 """
 email_template = """\
 From: {}
@@ -23,19 +32,24 @@ pls no reply.
 """
 
 def get_credentials():
-    load_dotenv()
     username = os.getenv('GMAIL_USERNAME')
     password = os.getenv('GMAIL_PASSWORD')
     return username, password
 
 def write_mail(name):
     contact = contacts[name]
-    sender = 'Raph'
+    sender, _ = get_credentials()
     to = contact['email']
     subject = '🎁 Secret Santa 2020 🎄'
+    if test:
+        alias = name.lower().split()[0]
+        to = '{}+{}@gmail.com'.format(sender, alias)
+        subject += ' THIS IS A TEST.'
     recipient = contact['to']
     address = contacts[recipient]['address']
-    body = body_template.format(recipient, address)
+    note = contacts[recipient]['note']
+    note_text = note if len(note) == 0 else note_template.format(note)
+    body = body_template.format(recipient, address, note_text)
     email = email_template.format(sender, to, subject, body)
     return sender, to, email.encode('utf-8')
 
@@ -58,7 +72,6 @@ def send_mails():
         print('server closed.')
 
 def download_data():
-    load_dotenv()
     file_id = os.getenv('CONTACT_INFO_FILE_ID')
     output_format = 'csv'
     url = 'https://docs.google.com/spreadsheet/ccc?key={}&output={}'
@@ -78,15 +91,22 @@ def map_csv_to_contacts(csvf):
         contacts[name] = {}
         contacts[name]['email'] = row['Email']
         contacts[name]['address'] = row['Address']
+        contacts[name]['note'] = row['Note']
 
-def cycle(items, cycle=[]):
+def cycle(items, preset=[]):
     bag = set(items)
+    for it in preset:
+        bag.remove(it)
     while len(bag) > 0:
-        cycle.append(bag.pop())
-    return cycle
+        preset.append(bag.pop())
+    return preset
+
+def preset():
+    # Return pre-determined cycle or part of it for testing
+    return []
 
 def assign_santas():
-    santa_cycle = cycle(contacts.keys())
+    santa_cycle = cycle(contacts.keys(), preset())
     for i, santa in enumerate(santa_cycle):
         recipient = santa_cycle[(i + 1) % len(santa_cycle)]
         contacts[santa]['to'] = recipient
@@ -99,5 +119,4 @@ assign_santas()
 for name, info in contacts.items():
     print(name, info)
 
-# Uncomment next line to send e-mails
-# send_mails()
+send_mails()
