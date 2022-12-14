@@ -18,13 +18,17 @@ This script makes use of three environmental variables and loads them via
 The variables are:
 
 * `GMAIL_USERNAME` - Gmail log-in username
-* `GMAIL_PASSWORD` - Gmail log-in password
+* `GMAIL_PASSWORD` - Gmail app password (**NOT** the account password)
 * `CONTACT_INFO_FILE_ID` - File ID of the spreadsheet created by Google Forms
 
-Because this script is dependent on `smtplib` to connect to the server, the Google
-account being used must have "Less secure app access" setting turned _ON_.
+Change the visibility of the spreadsheet to be accessible to those with URL.
 
-See ["Less secure apps & your Google Account"](https://support.google.com/accounts/answer/6010255)
+Google stopped supporting "Less secure app access" in May 2022, which makes the script
+unable to log-in to Gmail account with just the account password. In order to successfully
+authenticate this script, please enable 2-Step-Verification and generate an "App Password"
+to be used by this app.
+
+See ["Sign in with App Passwords"](https://support.google.com/accounts/answer/185833)
 for more information.
 
 ## Testing the Script

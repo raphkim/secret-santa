@@ -40,7 +40,7 @@ def write_mail(name):
     contact = contacts[name]
     sender, _ = get_credentials()
     to = contact['email']
-    subject = '🎁 Secret Santa 2020 🎄'
+    subject = '🎁 Secret Santa 2022 🎄'
     if test:
         alias = name.lower().split()[0]
         to = '{}+{}@gmail.com'.format(sender, alias)
